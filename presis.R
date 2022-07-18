@@ -7,7 +7,7 @@ pacman::p_load(
   lubridate,
   Cairo)
 
-#Carga de datos
+# Carga de datos
 Presidentes <- read_csv("Datos/Presidentes.csv", 
                         col_types = cols(Nacimiento = col_date(format = "%d/%m/%Y"), 
                                          Fallecimiento = col_date(format = "%d/%m/%Y"), 

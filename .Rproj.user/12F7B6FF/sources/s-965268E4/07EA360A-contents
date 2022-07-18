@@ -1,0 +1,63 @@
+# Setup
+library(tidyverse)
+library(ggrepel)
+library(ggsci)
+library(directlabels)
+library("Cairo")
+
+# Cargamos ihcp.csv
+ihpc <- read_csv("IHPC.csv", col_types = cols(`Año` = col_integer()), 
+                 locale = locale(encoding = "ISO-8859-1"))
+#extra
+data_ends <- ihpc %>% filter(Año==2020)
+library(ggrepel)
+precioshmo <- ihpc %>%  
+  ggplot(aes(x=Año,y=Índice, group=Tipo)) + #en aes se agregó el comando group para que el gráfico sepa que series van agrupadas
+  # geom_area() + 
+  geom_line(aes(color=Tipo), size=2, alpha=0.5) +
+  geom_point(aes(fill=Tipo), size=3, shape=21, color="white", stroke=2) + 
+  geom_text_repel(aes(label=Tipo, color=Tipo), data=data_ends, nudge_x = 2, direction = "y", hjust = "right", family="Lato Black") +
+  annotate(
+    geom = "rect", xmin = 2025, xmax = Inf, ymin = -Inf, ymax = Inf,
+    fill = "white") +
+  scale_color_d3() + 
+  scale_fill_d3()+
+  scale_x_continuous(breaks = seq(from = 2011, to=2020, by=1),expand=c(0,0))+
+  theme_minimal() + theme (legend.position = "none", panel.grid.minor= element_blank(), plot.margin = unit(c(1,1,1,1), "cm")) 
+precioshmo
+
+head(ihpc)
+head(data_ends)
+
+
+lim <- c(2010, 2020 + 3.5)
+precioshmo <- ihpc %>%  
+  ggplot(aes(x=Año,y=Índice, group=Tipo)) + 
+  geom_line(aes(color=Tipo), size=1, alpha=0.5) +
+  geom_point( data = subset(ihpc , Año == max(Año)),aes(fill=Tipo), size=1.5 , shape=21, color="white", stroke=0.8) + 
+  geom_point( data = subset(ihpc , Año == min(Año)),fill="gray50", size=1.5 , shape=21, color="white", stroke=0.8) + 
+  #geom_text_repel(aes(label=Tipo, color=Tipo), data=data_ends, nudge_y = 0, direction = "y", hjust = "right", family="Lato Black") +
+  geom_dl(aes(label = Tipo, color=Tipo), method = list(dl.trans(x = x + 0.2), "last.bumpup", cex = 0.6, fontfamily= "Lato")) +
+  scale_color_d3() + 
+  scale_fill_d3()+
+  scale_x_continuous(breaks = seq(from = 2011, to=2020, by=1),expand=c(0,0), limits = lim)+
+  scale_y_continuous(breaks = seq(from = 1, to=1.7, by=0.1))+
+  theme_minimal() + theme (axis.line = element_line(linetype = "solid"),
+                           plot.title = element_text(family = "Lato Black", size = 25,color = "black"),  
+                           plot.subtitle = element_text(family = "Lato Light", size = 10, color = "gray50"), legend.title = element_blank(),
+                           strip.text = element_text(family = "Lato Black", size = 8),
+                           axis.text = element_text(family = "Lato", size =8),
+                           plot.background = element_rect(fill = "white", color = "black", size = 2.5),
+                           axis.title.x = element_text(family = "Lato Light", size = 8, hjust=0),
+                           axis.title.y = element_text(family = "Lato Light", size =7, hjust=1), 
+                           plot.caption = element_text(family = "Lato", size = 8, color = "#01A2AC"), panel.grid = element_line(size=0.2), 
+                           legend.text = element_text(family = "Lato", size = 5),legend.position = "none", 
+                           panel.grid.minor= element_blank(), plot.margin = unit(c(0.5,0.5,0.3,0.5), "cm")) +
+  labs(y = "Veces respecto a los precios\n observados en diciembre de 2011", 
+       x = NULL,legend= NULL, title  = "Evolución de los precios en\nHermosillo", 
+       subtitle= "Índice de precios a diciembre de cada año respecto\n al registrado en diciembre de 2011 por tipo de gasto.", 
+       caption ="Elaboración: Luis Armando Moreno (@dogomoreno) con información de INEGI")
+precioshmo
+
+ggsave("precios.png", width = 5 * (16/9), height = 5, type = "cairo", dpi = 300)
+
